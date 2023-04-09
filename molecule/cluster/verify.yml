@@ -27,63 +27,76 @@
       ansible.builtin.template:
         src: test-messages.txt.j2
         dest: "{{ kafka_tmp_dir }}/test-messages.txt"
-        mode: 644
+        mode: "{{ kafka_files_mode }}"
 
     - name: Produce test messages
       become: true
       ansible.builtin.shell: "{{ kafka_install_dir }}/bin/kafka-console-producer.sh --bootstrap-server {{ kafka_bootstrap_server }} --topic test2 < {{ kafka_tmp_dir }}/test-messages.txt"
+      register: __produce_test_messages
+      changed_when: __produce_test_messages.rc != 0
 
     - name: Check kafka topics
       become: true
       command: "{{ kafka_install_dir }}/bin/kafka-topics.sh --bootstrap-server {{ kafka_bootstrap_server }} --list"
-      register: kafka_topics_listed
+      register: __kafka_topics_listed
       changed_when: false
 
     - name: Topics in server
       set_fact:
-        kafka_topics_inside: "{{ kafka_topics_listed.stdout_lines }}"
+        __kafka_topics_inside: "{{ __kafka_topics_listed.stdout_lines }}"
 
     - name: DEBUG - kafka_topics_inside
       ansible.builtin.debug:
-        var: kafka_topics_inside
+        var: __kafka_topics_inside
 
     - name: Count test messages
       become: true
-      ansible.builtin.shell: "cat {{ kafka_tmp_dir }}/test-messages.txt | wc -l"
-      register: count_test_messages
+      ansible.builtin.shell: |
+        set -euxo pipefail
+        cat {{ kafka_tmp_dir }}/test-messages.txt | wc -l
+      register: __count_test_messages
+      changed_when: false
 
     - name: Consume test messages from broker 1
       become: true
-      ansible.builtin.shell: "{{ kafka_install_dir }}/bin/kafka-console-consumer.sh --bootstrap-server molecule-kafka-role-instance-1-cluster-fedora37:9092 --topic test2 --from-beginning --max-messages {{ count_test_messages.stdout }}"
-      register: consume_test_messages_result
+      ansible.builtin.shell: |
+        {{ kafka_install_dir }}/bin/kafka-console-consumer.sh --bootstrap-server molecule-kafka-role-instance-1-cluster-fedora37:9092 --topic test2 --from-beginning --max-messages {{ __count_test_messages.stdout }}
+      register: __consume_test_messages_result
+      changed_when: false
 
     - name: Print consume test messages from broker 1
       ansible.builtin.debug:
-        var: consume_test_messages_result
+        var: __consume_test_messages_result
 
     - name: Consume test messages from broker 2
       become: true
-      ansible.builtin.shell: "{{ kafka_install_dir }}/bin/kafka-console-consumer.sh --bootstrap-server {{ kafka_bootstrap_server }} --topic test2 --from-beginning --max-messages {{ count_test_messages.stdout }}"
-      register: consume_test_messages_result
+      ansible.builtin.shell: |
+        {{ kafka_install_dir }}/bin/kafka-console-consumer.sh --bootstrap-server {{ kafka_bootstrap_server }} --topic test2 --from-beginning --max-messages {{ __count_test_messages.stdout }}
+      register: __consume_test_messages_result
+      changed_when: false
 
     - name: Print consume test messages from broker 2
       ansible.builtin.debug:
-        var: consume_test_messages_result
+        var: __consume_test_messages_result
 
     - name: Producer perf test
       become: true
-      shell: "{{ kafka_install_dir }}/bin/kafka-producer-perf-test.sh --producer.config {{ kafka_conf_dir }}/producer.properties --print-metrics --throughput 10 --num-records 1024 --topic test --record-size 50"
-      register: producer_perf_test_result
+      ansible.builtin.shell: |
+        {{ kafka_install_dir }}/bin/kafka-producer-perf-test.sh --producer.config {{ kafka_conf_dir }}/producer.properties --print-metrics --throughput 10 --num-records 1024 --topic test --record-size 50
+      register: __producer_perf_test_result
+      changed_when: false
 
     - name: Print producer perf test
       ansible.builtin.debug:
-        var: producer_perf_test_result
+        var: __producer_perf_test_result
 
     - name: Consumer perf test
       become: true
-      shell: "{{ kafka_install_dir }}/bin/kafka-consumer-perf-test.sh --consumer.config {{ kafka_conf_dir }}/consumer.properties --bootstrap-server {{ kafka_bootstrap_server }} --topic test --messages 1024"
-      register: consumer_perf_test_result
+      ansible.builtin.shell: |
+        {{ kafka_install_dir }}/bin/kafka-consumer-perf-test.sh --consumer.config {{ kafka_conf_dir }}/consumer.properties --bootstrap-server {{ kafka_bootstrap_server }} --topic test --messages 1024
+      register: __consumer_perf_test_result
+      changed_when: false
 
     - name: Print consumer perf test
       ansible.builtin.debug:
-        var: consumer_perf_test_result
+        var: __consumer_perf_test_result

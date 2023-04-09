@@ -12,8 +12,10 @@
   block:
     - name: "{{ kafka_mode }} | generate cluster ID"
       become: true
-      shell: "{{ kafka_install_dir }}/bin/kafka-storage.sh random-uuid"
+      ansible.builtin.shell: |
+        {{ kafka_install_dir }}/bin/kafka-storage.sh random-uuid
       register: __generate_cluster_id
+      changed_when: false
 
     - name: "{{ kafka_mode }} | set cluster ID to fact"
       ansible.builtin.set_fact:
@@ -21,7 +23,10 @@
 
     - name: "{{ kafka_mode }} | manage Kraft"
       become: true
-      shell: "{{ kafka_install_dir }}/bin/kafka-storage.sh format --config {{ kafka_conf_dir }}/kafka.server.properties --cluster-id {{ __kafka_cluster_id }} --ignore-formatted"
+      ansible.builtin.shell: |
+        {{ kafka_install_dir }}/bin/kafka-storage.sh format --config {{ kafka_conf_dir }}/kafka.server.properties --cluster-id {{ __kafka_cluster_id }} --ignore-formatted
+      register: __manage_kraft
+      changed_when: false
 
 - name: "{{ kafka_mode }} | from inventory cluster ID"
   become: true
@@ -29,7 +34,10 @@
   block:
     - name: "{{ kafka_mode }} | manage Kraft"
       become: true
-      shell: "{{ kafka_install_dir }}/bin/kafka-storage.sh format --config {{ kafka_conf_dir }}/kafka.server.properties --cluster-id {{ kafka_cluster_id }} --ignore-formatted"
+      ansible.builtin.shell: |
+        {{ kafka_install_dir }}/bin/kafka-storage.sh format --config {{ kafka_conf_dir }}/kafka.server.properties --cluster-id {{ kafka_cluster_id }} --ignore-formatted
+      register: __manage_kraft
+      changed_when: false
 
 - name: "{{ kafka_mode }} | enable GC log"
   become: true

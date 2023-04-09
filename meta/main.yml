@@ -4,13 +4,13 @@ galaxy_info:
   role_name: kafka
   author: BUISSET Emmanuel
   namespace: buissetemmanuel
-  description: Instal and configure Kafka (one server or cluster server)
+  description: Manage KAFKA
   company: BUISSET
-
-  license: license (GPL-2.0-or-later, MIT, etc)
-
-  min_ansible_version: 2.1
-
+  license: MIT
+  min_ansible_version: 2.12.3
+  platforms:
+    - name: Fedora
+      versions:
+        - "37"
   galaxy_tags: []
-
 dependencies: []

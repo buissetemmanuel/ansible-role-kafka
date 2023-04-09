@@ -22,6 +22,7 @@
   ansible.builtin.file:
     path: "/etc/systemd/system/user@.service.d"
     state: "{{ kafka_directories_state }}"
+    mode: "{{ kafka_files_mode }}"
 
 - name: "{{ kafka_mode }} | systems | copy delegate.conf file"
   when: kafka_state == 'present'

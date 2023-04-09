@@ -24,7 +24,7 @@
   become_exe: "sudo machinectl"
   ansible.builtin.command: |
     {{ kafka_install_dir }}/bin/kafka-topics.sh --bootstrap-server {{ kafka_bootstrap_server }} --create --if-not-exists --topic {{ item.name }} --partitions {{ item.partitions }} --replication-factor {{ item.replicas }}
-  loop: "{{ kafka_topics | rejectattr( 'name', 'in', __get_list_of_topics_in_server.stdout_lines ) }}"
+  loop: "{{ kafka_topics | rejectattr('name', 'in', __get_list_of_topics_in_server.stdout_lines) }}"
   changed_when: false
 
 - name: "{{ kafka_mode }} | alter(partitions) kafka topics"
@@ -34,7 +34,8 @@
   become_exe: "sudo machinectl"
   ansible.builtin.command: "{{ kafka_install_dir }}/bin/kafka-topics.sh --bootstrap-server {{ kafka_bootstrap_server }} --alter --topic {{ item.name }} --partitions {{ item.partitions }}"
   when: __kafka_topics_server | selectattr('name', 'match', item.name) | selectattr('partitions', 'lt', item.partitions )
-  loop: "{{ kafka_topics | difference( __kafka_topics_server ) }}"
+  loop: "{{ kafka_topics | difference(__kafka_topics_server) }}"
+  changed_when: false
 
 - name: "{{ kafka_mode }} | delete kafka topics"
   become: true
@@ -42,7 +43,7 @@
   become_method: machinectl
   become_exe: "sudo machinectl"
   ansible.builtin.command: "{{ kafka_install_dir }}/bin/kafka-topics.sh --bootstrap-server {{ kafka_bootstrap_server }} --delete --if-exists --topic {{ item }}"
-  loop: "{{ __get_list_of_topics_in_server.stdout_lines | difference( kafka_topics | map(attribute='name') ) }}"
+  loop: "{{ __get_list_of_topics_in_server.stdout_lines | difference(kafka_topics | map(attribute='name')) }}"
   changed_when: false
 
 - name: "{{ kafka_mode }} | configure kafka topics"

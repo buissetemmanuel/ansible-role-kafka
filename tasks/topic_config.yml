@@ -15,7 +15,7 @@
 
 - name: "{{ kafka_mode }} | init temp vars for {{ item.name }} config (3/3)"
   ansible.builtin.set_fact:
-    __string_properties: "{{ __string_properties }}{{ (id > 0)| ternary(',','') }}{{ conf.key }}={{ conf.value }}"
+    __string_properties: "{{ __string_properties }}{{ (id > 0) | ternary(',','') }}{{ conf.key }}={{ conf.value }}"
   loop: "{{ __properties | dict2items }}"
   loop_control:
     index_var: id

@@ -29,7 +29,7 @@
   delay: 10
 
 - name: "{{ kafka_mode }} | services | wait for service listening"
-  wait_for:
+  ansible.builtin.wait_for:
     host: "{{ kafka_hostname }}"
     port: "{{ kafka_broker_port if kafka_server_process_roles == 'broker' else kafka_controller_port }}"
     state: started

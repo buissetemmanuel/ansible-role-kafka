@@ -3,19 +3,21 @@
 # Persistent DBUS session
 - name: "{{ kafka_mode }} | systems | check if user is lingering"
   become: true
-  stat:
+  ansible.builtin.stat:
     path: "/var/lib/systemd/linger/{{ kafka_user_owner_service }}"
   register: user_owner_service_lingering
 
 - name: "{{ kafka_mode }} | systems | enable lingering is needed"
   when: not user_owner_service_lingering.stat.exists and kafka_state == 'present'
   become: true
-  command: "loginctl enable-linger {{ kafka_user_owner_service }}"
+  ansible.builtin.command: "loginctl enable-linger {{ kafka_user_owner_service }}"
+  changed_when: false
 
 - name: "{{ kafka_mode }} | systems | disable lingering is needed"
   when: kafka_state == 'absent'
   become: true
-  command: "loginctl disable-linger {{ kafka_user_owner_service }}"
+  ansible.builtin.command: "loginctl disable-linger {{ kafka_user_owner_service }}"
+  changed_when: false
 
 - name: "{{ kafka_mode }} | systems | create /etc/systemd/system/user@.service.d folder"
   become: true

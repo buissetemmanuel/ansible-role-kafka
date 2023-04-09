@@ -1,0 +1,9 @@
+---
+
+- name: Install
+  when: kafka_state == 'present'
+  ansible.builtin.include_tasks: install.yml
+
+- name: Uninstall
+  when: kafka_state == 'absent'
+  ansible.builtin.include_tasks: uninstall.yml

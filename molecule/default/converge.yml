@@ -1,0 +1,11 @@
+---
+- name: Converge
+  hosts: all
+  vars_files:
+    - vars/users.yml
+    - vars/packages.yml
+    - vars/systems.yml
+  tasks:
+    - name: Include buissetemmanuel.kafka
+      ansible.builtin.include_role:
+        name: buissetemmanuel.kafka

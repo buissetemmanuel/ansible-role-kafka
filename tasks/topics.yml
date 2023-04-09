@@ -1,0 +1,47 @@
+---
+
+- name: "{{ kafka_mode }} | get list of topics in server"
+  become: true
+  become_user: "{{ kafka_user_owner_service }}"
+  become_method: machinectl
+  become_exe: "sudo machinectl"
+  command: "{{ kafka_install_dir }}/bin/kafka-topics.sh --bootstrap-server {{ kafka_bootstrap_server }} --list"
+  register: __get_list_of_topics_in_server
+  changed_when: false
+
+- name: "{{ kafka_mode }} | topics in server"
+  set_fact:
+    __kafka_topics_server: []
+
+- name: "{{ kafka_mode }} | append kafka_topics_server"
+  include_tasks: topic_list.yml
+  loop: "{{ __get_list_of_topics_in_server.stdout_lines }}"
+
+- name: "{{ kafka_mode }} | create kafka topics"
+  become: true
+  become_user: "{{ kafka_user_owner_service }}"
+  become_method: machinectl
+  become_exe: "sudo machinectl"
+  command: "{{ kafka_install_dir }}/bin/kafka-topics.sh --bootstrap-server {{ kafka_bootstrap_server }} --create --if-not-exists --topic {{ item.name }} --partitions {{ item.partitions }} --replication-factor {{ item.replicas }}"
+  loop: "{{ kafka_topics | rejectattr( 'name', 'in', __get_list_of_topics_in_server.stdout_lines ) }}"
+
+- name: "{{ kafka_mode }} | alter(partitions) kafka topics"
+  become: true
+  become_user: "{{ kafka_user_owner_service }}"
+  become_method: machinectl
+  become_exe: "sudo machinectl"
+  command: "{{ kafka_install_dir }}/bin/kafka-topics.sh --bootstrap-server {{ kafka_bootstrap_server }} --alter --topic {{ item.name }} --partitions {{ item.partitions }}"
+  when: __kafka_topics_server | selectattr('name', 'match', item.name) | selectattr('partitions', 'lt', item.partitions )
+  loop: "{{ kafka_topics | difference( __kafka_topics_server ) }}"
+
+- name: "{{ kafka_mode }} | delete kafka topics"
+  become: true
+  become_user: "{{ kafka_user_owner_service }}"
+  become_method: machinectl
+  become_exe: "sudo machinectl"
+  command: "{{ kafka_install_dir }}/bin/kafka-topics.sh --bootstrap-server {{ kafka_bootstrap_server }} --delete --if-exists --topic {{ item }}"
+  loop: "{{ __get_list_of_topics_in_server.stdout_lines | difference( kafka_topics | map(attribute='name') ) }}"
+
+- name: "{{ kafka_mode }} | configure kafka topics"
+  include_tasks: topic_config.yml
+  loop: "{{ kafka_topics_config }}"

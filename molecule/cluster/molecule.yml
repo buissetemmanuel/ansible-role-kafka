@@ -1,0 +1,91 @@
+---
+
+dependency:
+  name: galaxy
+  options:
+    role-file: molecule/default/collections.yml
+    requirements-file: molecule/default/collections.yml
+driver:
+  name: vagrant
+  provider:
+    name: libvirt
+    type: libvirt
+platforms:
+  - name: molecule-kafka-role-instance-1-cluster-fedora37
+    box: "fedora/37-cloud-base"
+    box_version: "37.20221105.0"
+    memory: 2048
+    cpus: 2
+    timezone: Europe/Zurich
+    groups:
+      - kafka
+  - name: molecule-kafka-role-instance-2-cluster-fedora37
+    box: "fedora/37-cloud-base"
+    box_version: "37.20221105.0"
+    memory: 2048
+    cpus: 2
+    timezone: Europe/Zurich
+    groups:
+      - kafka
+  - name: molecule-kafka-role-instance-3-cluster-fedora37
+    box: "fedora/37-cloud-base"
+    box_version: "37.20221105.0"
+    memory: 2048
+    cpus: 2
+    timezone: Europe/Zurich
+    groups:
+      - kafka
+provisioner:
+  name: ansible
+  log: true
+  playbooks:
+    prepare: ../default/prepare.yml
+    converge: ../default/converge.yml
+  inventory:
+    group_vars:
+      kafka:
+        # need to go in vault file, here just for testing
+        kafka_cluster_id: gAX_MTYFSnewnhXp3QJQLg
+        kafka_broker_port: 9092
+        kafka_bootstrap_server: "molecule-kafka-role-instance-1-cluster-fedora37:{{ kafka_broker_port }}"
+        kafka_controller_port: 9093
+        kafka_server_controller_quorum_voters: "2@molecule-kafka-role-instance-2-cluster-fedora37:{{ kafka_controller_port }},3@molecule-kafka-role-instance-3-cluster-fedora37:{{ kafka_controller_port }}"
+        kafka_jvm_performance_opts: "-XX:MetaspaceSize=96m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:G1HeapRegionSize=16M -XX:MinMetaspaceFreeRatio=50 -XX:MaxMetaspaceFreeRatio=80"
+        kafka_topics:
+          - name: 'test1'
+            partitions: '1'
+            replicas: '1'
+          - name: 'test2'
+            partitions: '2'
+            replicas: '2'
+          - name: 'test3'
+            partitions: '3'
+            replicas: '2'
+        kafka_topics_config:
+          - name: 'test1'
+            delete.retention.ms: 222222
+            max.message.bytes: 1024
+          - name: 'test2'
+            delete.retention.ms: 100000
+            max.message.bytes: 2048
+        kafka_extra_properties:
+          - key: message.max.bytes
+            value: 409715200
+    host_vars:
+      molecule-kafka-role-instance-1-cluster-fedora37:
+        kafka_server_node_id: 1
+        kafka_server_process_roles: broker
+        kafka_server_listeners: "PLAINTEXT://{{ ansible_fqdn }}:{{ kafka_broker_port }}"
+        kafka_server_advertised_listeners: "PLAINTEXT://{{ ansible_fqdn }}:{{ kafka_broker_port }}"
+      molecule-kafka-role-instance-2-cluster-fedora37:
+        kafka_server_node_id: 2
+        kafka_server_process_roles: broker,controller
+        kafka_server_listeners: "PLAINTEXT://{{ ansible_fqdn }}:{{ kafka_broker_port }},CONTROLLER://{{ ansible_fqdn }}:{{ kafka_controller_port }}"
+        kafka_server_advertised_listeners: "PLAINTEXT://{{ ansible_fqdn }}:{{ kafka_broker_port }}"
+      molecule-kafka-role-instance-3-cluster-fedora37:
+        kafka_server_node_id: 3
+        kafka_server_process_roles: controller
+        kafka_server_listeners: "CONTROLLER://{{ ansible_fqdn }}:{{ kafka_controller_port }}"
+        kafka_server_advertised_listeners: ~
+verifier:
+  name: ansible

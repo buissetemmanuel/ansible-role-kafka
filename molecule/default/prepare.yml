@@ -1,0 +1,14 @@
+---
+
+- name: Prepare the Molecule Test Resources
+  hosts: all
+  tasks:
+    - name: "Build hosts file"
+      become: true
+      lineinfile:
+        dest: /etc/hosts
+        regexp: '.*{{ item }}$'
+        line: "{{ hostvars[item].ansible_default_ipv4.address }} {{ item }}"
+        state: present
+      when: hostvars[item].ansible_default_ipv4.address is defined
+      loop: "{{ groups['all'] }}"

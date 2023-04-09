@@ -1,0 +1,20 @@
+---
+
+# Manage users and groups
+users_managed: true
+users_groups:
+  - name: kafka_user_group
+  - name: kafka_user_group_service
+  - name: kafka_user_group_logs
+  - name: kafka_user_group_access_logs
+users_users:
+  - name: kafka_user_owner
+    group: kafka_user_group
+    create_home: true
+  - name: kafka_user_owner_service
+    group: kafka_user_group_service
+    create_home: true
+    groups: kafka_user_group_logs
+  - name: kafka_user_access_logs
+    group: kafka_user_group_access_logs
+    groups: kafka_user_group_logs

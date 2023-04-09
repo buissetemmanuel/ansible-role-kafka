@@ -1,0 +1,8 @@
+---
+
+- name: "{{ kafka_mode }} | packages"
+  become: true
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ kafka_state }}"
+  loop: "{{ kafka_packages_mandatories }}"

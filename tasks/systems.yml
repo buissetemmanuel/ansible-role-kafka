@@ -1,0 +1,40 @@
+---
+
+# Persistent DBUS session
+- name: "{{ kafka_mode }} | systems | check if user is lingering"
+  become: true
+  stat:
+    path: "/var/lib/systemd/linger/{{ kafka_user_owner_service }}"
+  register: user_owner_service_lingering
+
+- name: "{{ kafka_mode }} | systems | enable lingering is needed"
+  when: not user_owner_service_lingering.stat.exists and kafka_state == 'present'
+  become: true
+  command: "loginctl enable-linger {{ kafka_user_owner_service }}"
+
+- name: "{{ kafka_mode }} | systems | disable lingering is needed"
+  when: kafka_state == 'absent'
+  become: true
+  command: "loginctl disable-linger {{ kafka_user_owner_service }}"
+
+- name: "{{ kafka_mode }} | systems | create /etc/systemd/system/user@.service.d folder"
+  become: true
+  ansible.builtin.file:
+    path: "/etc/systemd/system/user@.service.d"
+    state: "{{ kafka_directories_state }}"
+
+- name: "{{ kafka_mode }} | systems | copy delegate.conf file"
+  when: kafka_state == 'present'
+  become: true
+  ansible.builtin.copy:
+    src: delegate.conf
+    dest: "/etc/systemd/system/user@.service.d/delegate.conf"
+    owner: root
+    group: root
+    mode: 0640
+
+- name: "{{ kafka_mode }} | systems | daemon-reload"
+  when: kafka_state == 'present'
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true

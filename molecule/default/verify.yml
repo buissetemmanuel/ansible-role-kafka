@@ -1,0 +1,81 @@
+---
+
+- name: Verify
+  hosts: all
+  vars:
+    kafka_tmp_dir: /tmp/kafka
+    kafka_install_dir: /opt/kafka
+    kafka_conf_dir: /etc/kafka
+    kafka_bootstrap_server: "{{ ansible_fqdn }}:9092"
+  vars_files:
+    - ../../defaults/main.yml
+    - vars/users.yml
+  tasks:
+    - name: Check kafka topics
+      become: true
+      become_user: "{{ kafka_user_owner_service }}"
+      become_method: machinectl
+      become_exe: "sudo machinectl"
+      command: "{{ kafka_install_dir }}/bin/kafka-topics.sh --bootstrap-server {{ kafka_bootstrap_server }} --list"
+      register: kafka_topics_listed
+      changed_when: false
+
+    - name: Topics in server
+      set_fact:
+        kafka_topics_origin: "{{ kafka_topics_listed.stdout_lines }}"
+
+    - name: DEBUG - kafka_topics
+      ansible.builtin.debug:
+        var: kafka_topics_origin
+
+    - name: Create test messages
+      become: true
+      ansible.builtin.template:
+        src: test-messages.txt.j2
+        dest: "{{ kafka_tmp_dir }}/test-messages.txt"
+        mode: 644
+
+    - name: Produce test messages
+      become: true
+      become_user: "{{ kafka_user_owner_service }}"
+      become_method: machinectl
+      become_exe: "sudo machinectl"
+      ansible.builtin.shell: "{{ kafka_install_dir }}/bin/kafka-console-producer.sh --bootstrap-server {{ kafka_bootstrap_server }} --topic test3 < {{ kafka_tmp_dir }}/test-messages.txt"
+
+    - name: Count test messages
+      become: true
+      become_user: "{{ kafka_user_owner_service }}"
+      become_method: machinectl
+      become_exe: "sudo machinectl"
+      ansible.builtin.shell: "cat {{ kafka_tmp_dir }}/test-messages.txt | wc -l"
+      register: count_test_messages
+
+    - name: Consume test messages
+      become: true
+      become_user: "{{ kafka_user_owner_service }}"
+      become_method: machinectl
+      become_exe: "sudo machinectl"
+      ansible.builtin.shell: "{{ kafka_install_dir }}/bin/kafka-console-consumer.sh --bootstrap-server {{ kafka_bootstrap_server }} --topic test3 --from-beginning --max-messages {{ count_test_messages.stdout }}"
+      register: consume_test_messages_result
+
+    - name: Print consume test messages
+      ansible.builtin.debug:
+        var: consume_test_messages_result
+
+    - name: Producer perf test
+      become: true
+      shell: "{{ kafka_install_dir }}/bin/kafka-producer-perf-test.sh --producer.config {{ kafka_conf_dir }}/producer.properties --print-metrics --throughput 10 --num-records 1024 --topic test3 --record-size 50"
+      register: producer_perf_test_result
+
+    - name: Print producer perf test
+      ansible.builtin.debug:
+        var: producer_perf_test_result
+
+    - name: Consumer perf test
+      become: true
+      shell: "{{ kafka_install_dir }}/bin/kafka-consumer-perf-test.sh --consumer.config {{ kafka_conf_dir }}/consumer.properties --bootstrap-server {{ kafka_bootstrap_server }} --topic test3 --messages 1024"
+      register: consumer_perf_test_result
+
+    - name: Print consumer perf test
+      ansible.builtin.debug:
+        var: consumer_perf_test_result

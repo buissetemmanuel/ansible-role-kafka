@@ -1,0 +1,52 @@
+---
+
+- name: "{{ kafka_mode }} | files | mandatories templates and from outside the role"
+  when: kafka_state == 'present'
+  become: true
+  ansible.builtin.template:
+    src: "{{ template.src }}"
+    dest: "{{ template.dest }}"
+    mode: "{{ template.mode if template.mode is defined else kafka_files_mode }}"
+    owner: "{{ template.owner }}"
+    group: "{{ template.group }}"
+  loop: "{{ kafka_templates_mandatories + kafka_templates }}"
+  loop_control:
+    loop_var: template
+    label: "{{ template.src }} -> {{ template.dest }}"
+  notify:
+    - Restart service
+
+- name: "{{ kafka_mode }} | files | services templates"
+  when: kafka_state == 'present'
+  become: true
+  become_user: "{{ kafka_user_owner_service }}"
+  become_method: machinectl
+  become_exe: "sudo machinectl"
+  ansible.builtin.template:
+    src: "{{ template.src }}"
+    dest: "{{ template.dest }}"
+    mode: "{{ template.mode if template.mode is defined else kafka_files_mode }}"
+    owner: "{{ template.owner }}"
+    group: "{{ template.group }}"
+  loop: "{{ kafka_services_templates_mandatories }}"
+  loop_control:
+    loop_var: template
+    label: "{{ template.src }} -> {{ template.dest }}"
+  notify:
+    - Restart service
+
+- name: "{{ kafka_mode }} | files | from outside the role"
+  when: kafka_state == 'present'
+  become: true
+  ansible.builtin.copy:
+    src: "{{ file.src }}"
+    dest: "{{ file.dest }}"
+    mode: "{{ file.mode if file.mode is defined else kafka_files_mode }}"
+    owner: "{{ file.owner }}"
+    group: "{{ file.group }}"
+  loop: "{{ kafka_files }}"
+  loop_control:
+    loop_var: file
+    label: "{{ file.src }} -> {{ file.dest }}"
+  notify:
+    - Restart service

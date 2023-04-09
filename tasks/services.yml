@@ -1,0 +1,36 @@
+---
+
+- name: "{{ kafka_mode }} | services | manage variable XDG_RUNTIME_DIR in ~/.bashrc.d/xdg_runtime_dir.rc"
+  when:
+    - kafka_state == 'present'
+    - user_owner_service_info is defined
+  become: true
+  ansible.builtin.copy:
+    dest: "{{ user_owner_service_info.home }}/.bashrc.d/xdg_runtime_dir.rc"
+    content: "export XDG_RUNTIME_DIR=/run/user/$UID"
+    owner: "{{ kafka_user_owner_service }}"
+    group: "{{ kafka_user_group_service }}"
+
+- name: "{{ kafka_mode }} | services | ensure service is started and enabled"
+  become: true
+  become_user: "{{ kafka_user_owner_service }}"
+  become_method: machinectl
+  become_exe: "sudo machinectl"
+  ansible.builtin.systemd:
+    name: kafka
+    state: "{{ 'started' if kafka_state == 'present' else 'stopped' }}"
+    enabled: "{{ 'true' if kafka_state == 'present' else 'false' }}"
+    daemon_reload: "{{ 'true' if kafka_state == 'present' else 'false' }}"
+    scope: user
+  register: __kafka_service_name_status
+  until: ( __kafka_service_name_status.status is defined and __kafka_service_name_status.status.ActiveState == "active" ) or kafka_state == 'absent'
+  retries: 15
+  delay: 10
+
+- name: "{{ kafka_mode }} | services | wait for service listening"
+  wait_for:
+    host: "{{ kafka_hostname }}"
+    port: "{{ kafka_broker_port if kafka_server_process_roles == 'broker' else kafka_controller_port }}"
+    state: started
+    delay: 5
+    timeout: 300

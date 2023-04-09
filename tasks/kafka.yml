@@ -1,0 +1,16 @@
+---
+
+- name: "{{ kafka_mode }} | kafka | untar"
+  when: kafka_state == 'present'
+  ansible.builtin.include_tasks: untar.yml
+
+- name: "{{ kafka_mode }} | kafka | config"
+  when: kafka_state == 'present'
+  ansible.builtin.include_tasks: config.yml
+
+- name: "{{ kafka_mode }} | kafka | services"
+  ansible.builtin.include_tasks: services.yml
+
+- name: "{{ kafka_mode }} | kafka | topics"
+  when: kafka_state == 'present'
+  ansible.builtin.include_tasks: topics.yml

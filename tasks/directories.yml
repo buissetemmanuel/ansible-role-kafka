@@ -1,0 +1,26 @@
+---
+
+- name: "{{ kafka_mode }} | directories | install, conf, data, tmp, log and other needs by inventory"
+  become: true
+  ansible.builtin.file:
+    state: "{{ kafka_directories_state }}"
+    path: "{{ directory.path }}"
+    mode: "{{ directory.mode if directory.mode is defined else kafka_directories_mode }}"
+    owner: "{{ directory.owner }}"
+    group: "{{ directory.group }}"
+  loop: "{{ kafka_directories_mandatories + kafka_directories }}"
+  loop_control:
+    loop_var: directory
+    label: "{{ directory.path }}"
+
+- name: "{{ kafka_mode }} | directories | services"
+  become: true
+  become_user: "{{ kafka_user_owner_service }}"
+  become_method: machinectl
+  become_exe: "sudo machinectl"
+  ansible.builtin.file:
+    state: "{{ kafka_directories_state }}"
+    path: "{{ kafka_service_dir }}"
+    mode: "{{ kafka_directories_mode }}"
+    owner: "{{ kafka_user_owner_service }}"
+    group: "{{ kafka_user_group_service }}"

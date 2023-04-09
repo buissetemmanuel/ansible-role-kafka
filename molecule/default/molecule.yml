@@ -1,0 +1,62 @@
+---
+dependency:
+  name: galaxy
+  options:
+    role-file: molecule/default/collections.yml
+    requirements-file: molecule/default/collections.yml
+driver:
+  name: vagrant
+  provider:
+    name: libvirt
+    type: libvirt
+platforms:
+  - name: molecule-kafka-role-instance-1-fedora37
+    box: "fedora/37-cloud-base"
+    box_version: "37.20221105.0"
+    memory: 4096
+    cpus: 2
+    timezone: Europe/Zurich
+    groups:
+      - kafka
+provisioner:
+  name: ansible
+  log: true
+  inventory:
+    group_vars:
+      kafka:
+        # need to go in vault file, here just for testing
+        kafka_cluster_id: gAX_MTYFSnewnhXp3QJQLg
+        kafka_broker_port: 9092
+        kafka_bootstrap_server: "molecule-kafka-role-instance-1-fedora37:{{ kafka_broker_port }}"
+        kafka_controller_port: 9093
+        kafka_server_controller_quorum_voters: "1@molecule-kafka-role-instance-1-fedora37:{{ kafka_controller_port }}"
+        kafka_jvm_performance_opts: "-XX:MetaspaceSize=96m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:G1HeapRegionSize=16M -XX:MinMetaspaceFreeRatio=50 -XX:MaxMetaspaceFreeRatio=80"
+        kafka_topics:
+          - name: 'test'
+            partitions: '3'
+            replicas: '1'
+          - name: 'test2'
+            partitions: '38'
+            replicas: '1'
+          - name: 'test3'
+            partitions: '6'
+            replicas: '1'
+        kafka_topics_config:
+          - name: 'test'
+            retention.ms: 30000
+            delete.retention.ms: 30000
+            max.message.bytes: 1024
+          - name: 'test2'
+            delete.retention.ms: 100000
+            max.message.bytes: 2048
+        kafka_extra_properties:
+          - key: message.max.bytes
+            value: 409715200
+    host_vars:
+      molecule-kafka-role-instance-1-fedora37:
+        kafka_node_id: 1
+verifier:
+  name: ansible
+lint: |
+  set -e
+  yamllint .

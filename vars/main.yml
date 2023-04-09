@@ -1,0 +1,63 @@
+---
+
+kafka_service_dir: "$HOME/.config/systemd/user"
+
+kafka_directories_state: "{{ 'directory' if kafka_state == 'present' else 'absent' }}"
+kafka_directories_mode: '0750'
+kafka_directories_mandatories:
+  - path: "{{ kafka_install_dir }}"
+    owner: "{{ kafka_user_owner }}"
+    group: "{{ kafka_user_group_service }}"
+    mode: "{{ kafka_directories_mode }}"
+  - path: "{{ kafka_conf_dir }}"
+    owner: "{{ kafka_user_owner }}"
+    group: "{{ kafka_user_group_service }}"
+    mode: "{{ kafka_directories_mode }}"
+  - path: "{{ kafka_data_dir }}"
+    owner: "{{ kafka_user_owner_service }}"
+    group: "{{ kafka_user_group_service }}"
+    mode: "{{ kafka_directories_mode }}"
+  - path: "{{ kafka_tmp_dir }}"
+    owner: "{{ kafka_user_owner }}"
+    group: "{{ kafka_user_group_service }}"
+  - path: "{{ kafka_log_dir }}"
+    owner: "{{ kafka_user_owner_service }}"
+    group: "{{ kafka_user_group }}"
+    mode: "{{ kafka_directories_mode }}"
+
+kafka_files_state: "{{ 'file' if kafka_state == 'present' else 'absent' }}"
+kafka_files_mode: '0640'
+kafka_templates_mandatories:
+  - src: kafka.server.properties.j2
+    dest: "{{ kafka_conf_dir }}/kafka.server.properties"
+    owner: "{{ kafka_user_owner }}"
+    group: "{{ kafka_user_group_service }}"
+    mode: "{{ kafka_files_mode }}"
+  - src: log4j.properties.j2
+    dest: "{{ kafka_conf_dir }}/log4j.properties"
+    owner: "{{ kafka_user_owner }}"
+    group: "{{ kafka_user_group_service }}"
+    mode: "{{ kafka_files_mode }}"
+  - src: producer.properties.j2
+    dest: "{{ kafka_conf_dir }}/producer.properties"
+    owner: "{{ kafka_user_owner }}"
+    group: "{{ kafka_user_group_service }}"
+    mode: "{{ kafka_files_mode }}"
+  - src: consumer.properties.j2
+    dest: "{{ kafka_conf_dir }}/consumer.properties"
+    owner: "{{ kafka_user_owner }}"
+    group: "{{ kafka_user_group_service }}"
+    mode: "{{ kafka_files_mode }}"
+
+kafka_services_templates_mandatories:
+  - src: kafka.service.j2
+    dest: "{{ kafka_service_dir }}/kafka.service"
+    owner: "{{ kafka_user_owner_service }}"
+    group: "{{ kafka_user_group_service }}"
+    mode: "{{ kafka_files_mode }}"
+
+kafka_packages_mandatories:
+  - systemd-container
+  - acl
+  - unzip
+  - java-latest-openjdk.x86_64

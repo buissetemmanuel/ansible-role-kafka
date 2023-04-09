@@ -1,0 +1,5 @@
+---
+
+- name: "{{ kafka_mode }} | check sources exist before install"
+  ansible.builtin.uri:
+    url: "{{ kafka_sources_url }}"

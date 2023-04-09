@@ -1,0 +1,31 @@
+---
+
+- name: Install (kafka_mode fact)
+  ansible.builtin.set_fact:
+    kafka_mode: "Install"
+
+- name: "{{ kafka_mode }} | packages"
+  when: packages_managed
+  ansible.builtin.include_tasks: packages.yml
+
+- name: "{{ kafka_mode }} (kafka_mode fact)"
+  vars:
+    kafka_mode: "Asserts"
+  ansible.builtin.include_tasks: asserts_kafka.yml
+
+- name: "{{ kafka_mode }} | users"
+  when: users_managed
+  ansible.builtin.include_tasks: users.yml
+
+- name: "{{ kafka_mode }} | systems"
+  when: systems_managed
+  ansible.builtin.include_tasks: systems.yml
+
+- name: "{{ kafka_mode }} | directories"
+  ansible.builtin.include_tasks: directories.yml
+
+- name: "{{ kafka_mode }} | files"
+  ansible.builtin.include_tasks: files.yml
+
+- name: "{{ kafka_mode }} | kafka"
+  ansible.builtin.include_tasks: kafka.yml

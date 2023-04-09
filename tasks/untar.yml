@@ -1,0 +1,35 @@
+---
+
+- name: "{{ kafka_mode }} | untar | check kafka version"
+  become: true
+  ansible.builtin.stat:
+    path: "{{ kafka_install_dir }}/libs/kafka_{{ kafka_scala_version }}-{{ kafka_version }}.jar"
+  register: kafka_check_version
+
+- name: "{{ kafka_mode }} | untar | stop service"
+  become: true
+  become_user: "{{ kafka_user_owner_service }}"
+  become_method: machinectl
+  become_exe: "sudo machinectl"
+  systemd:
+    name: kafka
+    state: stopped
+  when: kafka_force_reinstall and kafka_check_version.stat.exists
+
+- name: "{{ kafka_mode }} | untar | remove old version"
+  become: true
+  file:
+    path: "{{ kafka_install_dir }}"
+    state: absent
+  when: kafka_force_reinstall and kafka_check_version.stat.exists
+
+- name: "{{ kafka_mode }} | untar | sources"
+  become: true
+  unarchive:
+    extra_opts: ['--strip-components=1']
+    src: "{{ kafka_sources_url }}"
+    remote_src: true
+    dest: "{{ kafka_install_dir }}"
+    owner: "{{ kafka_user_owner }}"
+    group: "{{ kafka_user_group_service }}"
+  when: kafka_force_reinstall or not kafka_check_version.stat.exists

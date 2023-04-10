@@ -42,7 +42,6 @@ kafka_state: present
 # kafka filesystem
 kafka_install_dir: /opt/kafka
 kafka_conf_dir: /etc/kafka
-kafka_data_dir: /data/kafka
 kafka_tmp_dir: /tmp/kafka
 kafka_log_dir: /var/log/kafka
 

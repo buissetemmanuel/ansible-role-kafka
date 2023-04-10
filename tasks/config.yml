@@ -47,7 +47,9 @@
     replace: EXTRA_ARGS=${EXTRA_ARGS-'-name kafkaServer -loggc'}
     owner: "{{ kafka_user_owner }}"
     group: "{{ kafka_user_group_service }}"
-  when: kafka_gc_log_enabled
+  when:
+    - kafka_gc_log_enabled
+    - not ansible_check_mode
 
 - name: "{{ kafka_mode }} | disable GC log"
   become: true
@@ -57,4 +59,6 @@
     replace: EXTRA_ARGS=${EXTRA_ARGS-'-name kafkaServer'}
     owner: "{{ kafka_user_owner }}"
     group: "{{ kafka_user_group_service }}"
-  when: not kafka_gc_log_enabled
+  when:
+    - not kafka_gc_log_enabled
+    - not ansible_check_mode

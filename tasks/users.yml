@@ -61,7 +61,9 @@
   register: user_owner_service_info
 
 - name: "{{ kafka_mode }} | users | create folder ~/.bashrc.d/ to add some nice config"
-  when: kafka_state == 'present'
+  when:
+    - kafka_state == 'present'
+    - not ansible_check_mode
   become: true
   ansible.builtin.file:
     path: "{{ user_owner_service_info.home }}/.bashrc.d"

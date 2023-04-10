@@ -18,6 +18,7 @@
   become_user: "{{ kafka_user_owner_service }}"
   become_method: machinectl
   become_exe: "sudo machinectl"
+  when: not ansible_check_mode
   ansible.builtin.file:
     state: "{{ kafka_directories_state }}"
     path: "{{ kafka_service_dir }}"

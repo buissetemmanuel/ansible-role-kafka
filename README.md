@@ -1,5 +1,8 @@
-[![LINT](https://github.com/buissetemmanuel/ansible-role-kafka/actions/workflows/lint.yml/badge.svg)](https://github.com/buissetemmanuel/ansible-role-kafka/actions/workflows/lint.yml)
+[![MOLECULE-LINT](https://github.com/buissetemmanuel/ansible-role-kafka/actions/workflows/molecule-lint.yml/badge.svg)](https://github.com/buissetemmanuel/ansible-role-kafka/actions/workflows/molecule-lint.yml)
+
 [![MOLECULE-TEST](https://github.com/buissetemmanuel/ansible-role-kafka/actions/workflows/molecule-test.yml/badge.svg)](https://github.com/buissetemmanuel/ansible-role-kafka/actions/workflows/molecule-test.yml)
+
+[![RELEASE](https://github.com/buissetemmanuel/ansible-role-kafka/actions/workflows/release.yml/badge.svg)](https://github.com/buissetemmanuel/ansible-role-kafka/actions/workflows/release.yml)
 
 Ansible Role KAFKA
 =========

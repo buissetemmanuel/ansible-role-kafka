@@ -1,13 +1,9 @@
-[![MOLECULE-LINT](https://github.com/buissetemmanuel/ansible-role-kafka/actions/workflows/molecule-lint.yml/badge.svg)](https://github.com/buissetemmanuel/ansible-role-kafka/actions/workflows/molecule-lint.yml)
-
-[![MOLECULE-TEST](https://github.com/buissetemmanuel/ansible-role-kafka/actions/workflows/molecule-test.yml/badge.svg)](https://github.com/buissetemmanuel/ansible-role-kafka/actions/workflows/molecule-test.yml)
-
-[![RELEASE](https://github.com/buissetemmanuel/ansible-role-kafka/actions/workflows/release.yml/badge.svg)](https://github.com/buissetemmanuel/ansible-role-kafka/actions/workflows/release.yml)
+![MOLECULE-LINT](https://github.com/buissetemmanuel/ansible-role-kafka/actions/workflows/molecule-lint.yml/badge.svg) [![MOLECULE-TEST](https://img.shields.io/badge/molecule--test-local-green.svg)](https://github.com/actions/runner-images/discussions/7191) ![RELEASE](https://github.com/buissetemmanuel/ansible-role-kafka/actions/workflows/release.yml/badge.svg)
 
 Ansible Role KAFKA
 =========
 
-**KAFKA** installation from scratch.
+**KAFKA** installation from scratch in **KRAFT** mode.
 
 Goal
 --------------
@@ -45,7 +41,7 @@ See [molecule/default/converge.yml](molecule/default/converge.yml) for playbook 
 
 TODO
 -------
-- add pipeline with [Github actions](https://github.com/features/actions) but the problem is that Github actions runner nested virtualization is not working at all
+- try to find a solution because [Github actions runner nested virtualization is not working at all](https://github.com/actions/runner-images/discussions/7191), so it's not possible to test in local and to have the same code for pipeline. Maybe try Travis.
 
 License
 -------

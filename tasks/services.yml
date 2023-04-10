@@ -4,6 +4,7 @@
   when:
     - kafka_state == 'present'
     - user_owner_service_info is defined
+    - not ansible_check_mode
   become: true
   ansible.builtin.copy:
     dest: "{{ user_owner_service_info.home }}/.bashrc.d/xdg_runtime_dir.rc"
@@ -13,6 +14,7 @@
     mode: "{{ kafka_files_mode }}"
 
 - name: "{{ kafka_mode }} | services | ensure service is started and enabled"
+  when: not ansible_check_mode
   become: true
   become_user: "{{ kafka_user_owner_service }}"
   become_method: machinectl

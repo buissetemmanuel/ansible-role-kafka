@@ -1,6 +1,7 @@
 ---
 
 - name: "{{ kafka_mode }} | get list of topics in server"
+  when: not ansible_check_mode
   become: true
   become_user: "{{ kafka_user_owner_service }}"
   become_method: machinectl
@@ -14,10 +15,12 @@
     __kafka_topics_server: []
 
 - name: "{{ kafka_mode }} | append kafka_topics_server"
+  when: not ansible_check_mode
   ansible.builtin.include_tasks: topic_list.yml
   loop: "{{ __get_list_of_topics_in_server.stdout_lines }}"
 
 - name: "{{ kafka_mode }} | create kafka topics"
+  when: not ansible_check_mode
   become: true
   become_user: "{{ kafka_user_owner_service }}"
   become_method: machinectl
@@ -28,16 +31,19 @@
   changed_when: false
 
 - name: "{{ kafka_mode }} | alter(partitions) kafka topics"
+  when:
+    - __kafka_topics_server | selectattr('name', 'match', item.name) | selectattr('partitions', 'lt', item.partitions )
+    - not ansible_check_mode
   become: true
   become_user: "{{ kafka_user_owner_service }}"
   become_method: machinectl
   become_exe: "sudo machinectl"
   ansible.builtin.command: "{{ kafka_install_dir }}/bin/kafka-topics.sh --bootstrap-server {{ kafka_bootstrap_server }} --alter --topic {{ item.name }} --partitions {{ item.partitions }}"
-  when: __kafka_topics_server | selectattr('name', 'match', item.name) | selectattr('partitions', 'lt', item.partitions )
   loop: "{{ kafka_topics | difference(__kafka_topics_server) }}"
   changed_when: false
 
 - name: "{{ kafka_mode }} | delete kafka topics"
+  when: not ansible_check_mode
   become: true
   become_user: "{{ kafka_user_owner_service }}"
   become_method: machinectl
@@ -47,5 +53,6 @@
   changed_when: false
 
 - name: "{{ kafka_mode }} | configure kafka topics"
+  when: not ansible_check_mode
   ansible.builtin.include_tasks: topic_config.yml
   loop: "{{ kafka_topics_config }}"

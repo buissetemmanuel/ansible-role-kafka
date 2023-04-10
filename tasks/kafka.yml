@@ -12,5 +12,7 @@
   ansible.builtin.include_tasks: services.yml
 
 - name: "{{ kafka_mode }} | kafka | topics"
-  when: kafka_state == 'present'
+  when:
+    - kafka_state == 'present'
+    - kafka_server_process_roles != 'controller'
   ansible.builtin.include_tasks: topics.yml

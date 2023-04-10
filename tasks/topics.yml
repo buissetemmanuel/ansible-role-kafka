@@ -31,13 +31,14 @@
   changed_when: false
 
 - name: "{{ kafka_mode }} | alter(partitions) kafka topics"
-  when: not ansible_check_mode
+  when:
+    - __kafka_topics_server | selectattr('name', 'match', item.name) | selectattr('partitions', 'lt', item.partitions )
+    - not ansible_check_mode
   become: true
   become_user: "{{ kafka_user_owner_service }}"
   become_method: machinectl
   become_exe: "sudo machinectl"
   ansible.builtin.command: "{{ kafka_install_dir }}/bin/kafka-topics.sh --bootstrap-server {{ kafka_bootstrap_server }} --alter --topic {{ item.name }} --partitions {{ item.partitions }}"
-  when: __kafka_topics_server | selectattr('name', 'match', item.name) | selectattr('partitions', 'lt', item.partitions )
   loop: "{{ kafka_topics | difference(__kafka_topics_server) }}"
   changed_when: false
 
